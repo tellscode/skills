@@ -1,5 +1,5 @@
 ---
-name: init
+name: init-repo
 description: Use when initializing a new git repository and creating the first
   commit. Enforces the user's conventional-commit style.
 ---
