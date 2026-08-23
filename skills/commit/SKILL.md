@@ -18,12 +18,23 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
   - Use `git log -5 --stat --oneline` for changed-file row counts and size summaries.
 3. Based on the relevant changes, create a commit message. (If you think the changes should be split
    into multiple commits, load and follow the `multi-commit` skill.)
-4. Use the `commit-preview` skill for providing an approvable overview for the user.
+4. Determine the exact `commit_date` to use, including timezone. Then pass the
+   complete commit record (`commit_date`, subject, body, and staged files) to
+   `commit-preview`, which renders it without changing any values.
 5. If the user suggests adjustments, never partially commit, apply the changes,
    preview and repeat until the user approves.
-6. After approval, before committing, verify the mentioned staged changes within
-   the preview against `git diff --cached`, adjust the staged files if needed to
-   align with the preview.
+6. After approval, make the index match the preview before committing:
+   - Compare the preview's staged-file list with `git diff --cached --name-only`.
+   - Automatically unstage paths not listed for this commit and stage paths that
+     are listed but missing. Do not assume a prior staging state is correct.
+   - For partially staged files, preserve only the approved hunks; use patch
+     staging or another non-destructive method, and leave unrelated working-tree
+     changes unstaged.
+   - Re-check the exact staged paths and patch with `git diff --cached --name-status`,
+     `git diff --cached`, and `git diff --cached --check`.
+   - If the approved patch can be reconstructed safely, fix the index and continue.
+     If it cannot, stop before committing and ask for clarification rather than
+     committing an approximation or discarding working-tree changes.
 
 ## Rules
 - Relevancy:
@@ -36,6 +47,10 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
   - ...explanations if the "why" isn't obvious
   - ...per-file changes with why if it's a large change
 - Never commit without approval; always utilize the `commit-preview` skill.
+- For a single normal commit, set `commit_date` to the actual current
+  date/time. For multiple commits, follow the `multi-commit` skill's distinct
+  sequential date rules. Any spoofed, fake, backdated, or customized date,
+  including a single commit, follows `spoof-commit-date` before preview.
 - If a file contains irrelevant parts, ask the user whether they should become a part of the commit.
   - To stage only relevant parts, either use `git add -p` where applicable, or
     rename the original file, create a temporary file in its place with only

@@ -1,19 +1,30 @@
 ---
 name: spoof-commit-date
-description: Use only when the user explicitly asks to spoof, fake, backdate,
-  or customize git commit dates.
+description: Use when assigning dates to commits or when the user explicitly
+  asks to spoof, fake, backdate, or customize git dates.
 ---
 
 # Spoof Commit Date
 
-- Apply these instructions only when the user explicitly requests date or time spoofing.
-- If the user gives a date range, spread commits sequentially across that range
-  estimating reasonable, non-uniform intervals based on the size, complexity, dependencies,
-  and likely work required for each commit.
-- Along the educated guesses, introduce some randomization within the given
-  boundaries for realismh, use those time ranges:
-  - workday hours (mo-fr 6am to 7pm) (default)
-  - after hours (mo-fr 6pm to 3am, sa-su 6am to 3am) (only if explicitly specified, hobby, personal or side project mentioned)
-- Commands:
-  - Mac/Linux: `GIT_COMMITTER_DATE="YYYY-MM-DDTHH:MM:SS" git commit -m "message" --date="YYYY-MM-DDTHH:MM:SS"`
-  - Windows: `set GIT_COMMITTER_DATE="YYYY-MM-DDTHH:MM:SS" && git commit -m "message" --date="YYYY-MM-DDTHH:MM:SS"`
+Use these rules when assigning dates to commits.
+
+## Date Allocation
+
+- Establish the allowed range. Use user-supplied inclusive boundaries; otherwise
+  use a plausible work period (Mo-Fr 6AM-7PM; use after-hours, Mo-Fr 6PM-3AM or
+  Sa-Su 6AM-3AM, only when specified or clearly personal work).
+- Never generate a date at or before the latest existing commit (`HEAD`'s
+  committer timestamp). For generated dates, move the lower bound forward; for
+  an explicit exact date, reject it. Reject ranges with no valid timestamp.
+- For one commit, randomize one timestamp within the effective range.
+- For multiple commits, start from the current date, estimate effort, allocate
+  backward, then randomize without duplicates or leaving the range. Use varied
+  timestamps, no conspicuously round minute/hour/second values. Timestamps
+  should look irregular and random, not deliberately patterned.
+- Produce one exact `commit_date` per commit, including timezone. Use it for
+  both author and committer dates unless explicitly separated.
+
+## Commit Commands
+
+Mac/Linux: `GIT_COMMITTER_DATE="2026-08-24T14:30:00-04:00" git commit -m "message" --date="2026-08-24T14:30:00-04:00"`
+Windows: `set GIT_COMMITTER_DATE="2026-08-24T14:30:00-04:00" && git commit -m "message" --date="2026-08-24T14:30:00-04:00"`
